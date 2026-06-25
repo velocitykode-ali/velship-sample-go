@@ -25,13 +25,22 @@ func main() {
 		cmd = os.Args[1]
 	}
 	switch cmd {
-	case "migrate", "queue:work", "schedule:work":
-		// No database schema / workers in this sample; treat as success so
-		// the deploy's migration step doesn't fail a no-DB app.
-		fmt.Printf("%s: nothing to do\n", cmd)
+	case "", "serve":
+		// The web process. `serve` is the velocity app-type start command;
+		// a bare `./app` is the go-binary start command. Both serve.
+		serve()
+	case "velship:processes":
+		// The deployer runs this to auto-detect a multi-process manifest.
+		// This sample is a single web process, so emit nothing and exit 0 -
+		// the deployer falls back to the single web spec. (Serving here would
+		// hang the detection step forever and wedge the deploy.)
 		return
 	default:
-		serve()
+		// migrate / queue:work / schedule:work and any other subcommand: no
+		// schema, no workers in this sample. Exit 0 so the deploy's migration
+		// step succeeds instead of failing a no-DB app.
+		fmt.Printf("%s: nothing to do\n", cmd)
+		return
 	}
 }
 
