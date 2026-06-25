@@ -16,11 +16,23 @@ import (
 )
 
 func main() {
-	if len(os.Args) < 2 || os.Args[1] != "serve" {
-		fmt.Println("usage: app serve")
-		os.Exit(2)
+	// Velocity-style subcommands so the platform's deploy steps (which run
+	// `app migrate` for velocity app types before starting `app serve`) are
+	// satisfied. Anything other than an explicit no-op command falls through
+	// to serving, so a bare `./app` also works for the go-binary app type.
+	cmd := ""
+	if len(os.Args) > 1 {
+		cmd = os.Args[1]
 	}
-	serve()
+	switch cmd {
+	case "migrate", "queue:work", "schedule:work":
+		// No database schema / workers in this sample; treat as success so
+		// the deploy's migration step doesn't fail a no-DB app.
+		fmt.Printf("%s: nothing to do\n", cmd)
+		return
+	default:
+		serve()
+	}
 }
 
 func serve() {
